@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5433:5432
+    volumes:
+      - db_data:/var/lib/postgresql
+
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+  app:
+    build: .
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      DATABASE_URL: postgresql://postgres:admin@db:5432/postgres
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      BASE_URL: http://localhost:8000
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+
+volumes:
+  db_data:
+  redis_data:
